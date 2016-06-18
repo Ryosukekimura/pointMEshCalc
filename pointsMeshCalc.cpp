@@ -155,5 +155,5 @@ void pointMeshCalc::GetSimpleDistances()
 
 void pointMeshCalc::test()
 {
-	GetSimpleDistances();
+	//GetSimpleDistances();
 }
