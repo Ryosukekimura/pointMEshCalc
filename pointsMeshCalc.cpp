@@ -1,8 +1,9 @@
 #include "pointsMeshCalc.h"
 
 
+
 //コンストラクタ兼読み込み
-pointMeshCalc::pointMeshCalc(smesh::Mesh tenbo,smesh::Mesh In_kinect)
+pmc::pointMeshCalc::pointMeshCalc(smesh::Mesh tenbo,smesh::Mesh In_kinect)
 {
 	TenboMesh = tenbo;
 	KinectMesh = In_kinect;	
@@ -10,7 +11,7 @@ pointMeshCalc::pointMeshCalc(smesh::Mesh tenbo,smesh::Mesh In_kinect)
 	//DPP.resize(KinectMesh.numOfVertex());
 }
 
-void pointMeshCalc::getOneFace(smesh::Mesh mesh,int FaceNum,pvm::Vector3D *FacePoint)
+void pmc::pointMeshCalc::getOneFace(smesh::Mesh mesh,int FaceNum,pvm::Vector3D *FacePoint)
 {
 	for(int a=0;a<3;a++)
 	{
@@ -24,7 +25,7 @@ void pointMeshCalc::getOneFace(smesh::Mesh mesh,int FaceNum,pvm::Vector3D *FaceP
 	}
 }
 
-void pointMeshCalc::getOnePoint(smesh::Mesh mesh,int VertexNum,pvm::Vector3D *Vertex)
+void pmc::pointMeshCalc::getOnePoint(smesh::Mesh mesh,int VertexNum,pvm::Vector3D *Vertex)
 {
 	const float *point;
 	point = mesh.vertexCoord(VertexNum);
@@ -34,19 +35,8 @@ void pointMeshCalc::getOnePoint(smesh::Mesh mesh,int VertexNum,pvm::Vector3D *Ve
 	}
 }
 
-//smesh形式の頂点を読み込む 1つだけ
-//void pointMeshCalc::getOnePoint(int VertexNum,pvm::Vector3D *Vertex)
-//{
-//	const float *point;
-//	point = KinectMesh.vertexCoord(VertexNum);
-//
-//	for(int a=0;a<3;a++){
-//		Vertex->elem[a] = point[a];
-//	}
-//}
-
 //それぞれの点の最適なメッシュとの距離を調べる(総当り)
-void pointMeshCalc::getDistances()
+void pmc::pointMeshCalc::getDistances()
 {	
 	for(int k=0;k<KinectMesh.numOfVertex();k++)
 	{
@@ -90,7 +80,7 @@ void pointMeshCalc::getDistances()
 
 }
 //重心計算
-pvm::Vector3D pointMeshCalc::getCentroid(smesh::Mesh mesh)
+pvm::Vector3D pmc::pointMeshCalc::getCentroid(smesh::Mesh mesh)
 {
 	pvm::Vector3D c_temp;
 
@@ -114,7 +104,7 @@ pvm::Vector3D pointMeshCalc::getCentroid(smesh::Mesh mesh)
 	return c_temp;
 }
 
-void pointMeshCalc::ShiftMesh()
+void pmc::pointMeshCalc::ShiftMesh()
 {
 	pvm::Vector3D kinec_cen = getCentroid(KinectMesh);
 	pvm::Vector3D tenbo_cen = getCentroid(TenboMesh);
@@ -134,7 +124,7 @@ void pointMeshCalc::ShiftMesh()
 	ShiftTenboMesh.writeObj("move.obj");
 }
 
-void pointMeshCalc::GetSimpleDistances()
+void pmc::pointMeshCalc::GetSimpleDistances()
 {
 	ShiftMesh();
 	int size = ShiftTenboMesh.numOfVertex();
@@ -151,9 +141,7 @@ void pointMeshCalc::GetSimpleDistances()
 	distanceAllPoint.writeVertex("test.txt");
 }
 
-
-
-void pointMeshCalc::test()
+void pmc::pointMeshCalc::test()
 {
 	//GetSimpleDistances();
 }

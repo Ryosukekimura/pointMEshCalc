@@ -2,14 +2,23 @@
 #include <math.h>
 #include "simplemesh.h"
 #include "distancePointPlane.h"
+#include "getZbuffer.h"
 
 #include "opencv2\opencv.hpp"
 #include "glut.h"
 
 #pragma once;
 
+namespace pmc
+{
+
 typedef std::vector<float> FLOATVECTOR;
 typedef std::vector<pvm::Vector3D> PVM_VECTOR_VECTOR;
+
+struct pmvMesh{
+	std::vector<pvm::Vector3D> vertex_list;
+	std::vector<dpp::Face> face_list;
+};
 
 //メッシュと点群の差分を求めるクラス
 class pointMeshCalc{
@@ -31,9 +40,15 @@ public:
 
 	void GetSimpleDistances();
 
+	//重心計算
+	pvm::Vector3D getCentroid(smesh::Mesh mesh);
+
 	//あたらしくつくったやつをテストするかんすう
 	void test();
 
+	//表示用
+
+	
 
 
 private:
@@ -58,9 +73,7 @@ private:
 	//smesh形式の頂点を読み込む 1つだけ
 	void getOnePoint(smesh::Mesh mesh,int VertexNum,pvm::Vector3D *Vertex);
 
-	//重心計算
-	pvm::Vector3D getCentroid(smesh::Mesh mesh);
-
+	
 	void ShiftMesh();
 
 	//読み込んだtenbo表示
@@ -68,3 +81,4 @@ private:
 
 
 };
+}
