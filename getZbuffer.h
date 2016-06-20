@@ -1,4 +1,5 @@
 #include "simplemesh.h"
+#include "simpleimage.h"
 #include "glut.h"
 
 #pragma once;
@@ -37,6 +38,10 @@ namespace pmc{
 		void DrawScene(Mesh this_mesh);
 		void Resize(int width,int height);
 		void Init(void);
+		void keyboard(unsigned char key, int x, int y);
+
+		void saveDepthImage();
+
 
 	};
 }

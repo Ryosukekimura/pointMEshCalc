@@ -63,6 +63,11 @@ static void idle(void)
 	glutPostRedisplay();
 }
 
+static void keyboard(unsigned char key, int x, int y)
+{
+	gz.keyboard(key,x,y);
+}
+
 static void init(void)
 {
 	gz.Init();
@@ -86,12 +91,12 @@ int main(int argc, char *argv[])
 
 	glutInit(&argc, argv);
 	glutInitWindowSize(kWindowWidth,kWindowHeight);
-	glutInitDisplayMode(GLUT_RGBA);
-
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutCreateWindow("test.cpp");
 	glutDisplayFunc(display);
 	glutReshapeFunc(resize);
 	glutIdleFunc(idle);
+	glutKeyboardFunc(keyboard);
 	init();
 
 	glutMainLoop();

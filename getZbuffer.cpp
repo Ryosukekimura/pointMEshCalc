@@ -113,10 +113,59 @@ void pmc::getZbuffer::Init(void)
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 	//glShadeModel(GL_SMOOTH);
 	//glEnable(GL_ALPHA_TEST);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_NORMALIZE);
 
 	
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
+{
+	switch(key) {
+	case 'd':
+		saveDepthImage();
+		break;
+	
+	}
+}
+
+
+void pmc::getZbuffer::saveDepthImage()
+{
+	std::cout << "save depth image" << std::endl;
+
+	// デプスバッファの内容を取得する
+	// ｚバッファの読み出し
+	std::vector<float> z_buf(kwidth * kheight);
+	glReadPixels(0, 0, kwidth, kheight, GL_DEPTH_COMPONENT, GL_FLOAT, &(z_buf[0]));
+
+	//距離画像への変換
+	smImageFloat distImg(kwidth, kheight);
+
+	double modelviewmat[16],projmat[16];
+	int viewport[4];
+	glGetIntegerv(GL_VIEWPORT,viewport);	// 現在のビューポートを代入
+	glGetDoublev(GL_PROJECTION_MATRIX, projmat);	// 現在のプロジェクション行列を代入
+	//glGetDoublev(GL_MODELVIEW_MATRIX, modelviewmat);	// 現在のモデルビュー行列を代入
+	
+	//モデルビューとして単位行列を使う
+	for(int i=0; i<16; ++i){modelviewmat[i]=0.0;}
+	modelviewmat[0]=modelviewmat[5]=modelviewmat[10]=modelviewmat[15]=1.0;
+
+		for(int cnt2=0; cnt2<kheight; ++cnt2){
+		for(int cnt1=0; cnt1<kwidth; ++cnt1){
+			float zval=z_buf[kwidth*cnt2+cnt1];
+			double camX,camY,camZ;
+			gluUnProject(cnt1,cnt2,zval,modelviewmat,projmat,viewport,&camX,&camY,&camZ);
+			//std::cout << "z:" << camZ << std::endl;
+			//カメラ座標系でのZが距離画像の値
+			//ただし、そのままだとマイナスの値になるので、符号を逆転
+			distImg(cnt1,cnt2)=-camZ;
+		}
+	}
+	const char* fileName="depthImage.bmp";
+	printf("depthBuffer saved as %s\n",fileName);
+	distImg.writeBMP24BitInt(fileName,0.0001);
 }
