@@ -1,10 +1,17 @@
+#include <fstream>
 #include "simplemesh.h"
 #include "simpleimage.h"
 #include "glut.h"
+#include <math.h>
 
 #pragma once;
 
 namespace pmc{
+
+	struct NearestPoint{
+		pvm::Vector3D point;
+		float norm;
+	};
 
 	struct Face{
 		unsigned short vertex[3];
@@ -12,8 +19,11 @@ namespace pmc{
 
 	struct Mesh{
 		std::vector<pvm::Vector3D> vertex_list;
+		std::vector<bool> visibility_check;
 		std::vector<Face> face_list;
 		pvm::Vector3D center;
+
+		bool getdepthImage;
 	};
 
 	class getZbuffer{
@@ -24,12 +34,17 @@ namespace pmc{
 		int resize_width_ ,resize_height_;
 
 		Mesh mesh;
+		Mesh depthMesh;
+		Mesh TenboMesh;
+
+		std::vector<std::vector<float>> distmap;
+
 
 		getZbuffer(){};
 		getZbuffer(Mesh in_mesh){mesh = in_mesh;};
 		getZbuffer(Mesh in_mesh,int in_width,int in_height){mesh = in_mesh; kwidth = in_width; kheight = in_height;};
 		getZbuffer(smesh::Mesh in_mesh);
-		getZbuffer(smesh::Mesh in_mesh,int in_width,int in_height);
+		getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height);
 
 		Mesh convert2pmcMesh(smesh::Mesh this_mesh);
 		smesh::Mesh convert2smesh(Mesh this_mesh);
@@ -42,6 +57,11 @@ namespace pmc{
 
 		void saveDepthImage();
 
+		void showMatrix(double matrix[16]);
+		
+		float getNorm(pvm::Vector3D a,pvm::Vector3D b);
+		void visibilty();
 
+		void getDistanceKinect2Tenbo();
 	};
 }

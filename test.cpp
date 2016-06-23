@@ -3,6 +3,9 @@
 int kWindowWidth = 512;
 int kWindowHeight = 424;
 
+//int kWindowWidth = 800;
+//int kWindowHeight = 800;
+
 pmc::pointMeshCalc *pte = 0;
 pmc::getZbuffer gz;
 
@@ -80,11 +83,11 @@ int main(int argc, char *argv[])
 	smesh::Mesh kinect;
 
 	tenbo.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-shape.obj");
-	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-vert.obj");
-
+	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/2-vert.obj");
+	kinect.writeVertex("kinect_out.txt");
 	pte = new pmc::pointMeshCalc(tenbo,kinect);
 	
-	pmc::getZbuffer temp(kinect,kWindowWidth,kWindowHeight);
+	pmc::getZbuffer temp(kinect,tenbo,kWindowWidth,kWindowHeight);
 	gz = temp;
 
 	system("PAUSE");
@@ -100,5 +103,9 @@ int main(int argc, char *argv[])
 	init();
 
 	glutMainLoop();
+	
+	
+	std::cout <<"OK!"<<std::endl;
+	system("PAUSE");
 	return 0;
 }
