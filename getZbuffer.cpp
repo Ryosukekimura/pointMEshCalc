@@ -1,78 +1,89 @@
 #include "getZbuffer.h"
 
-pvm::Vector3D getCenter(pmc::Mesh this_mesh)
+pmc::Mesh::Mesh()
 {
-	pvm::Vector3D center(0,0,0);
-	int size = this_mesh.vertex_list.size();
+	vertex_list.resize(0);
+	visibility_check.resize(0);
+	face_list.resize(0);
+	getdepthImage = false;
+}
+
+pmc::Mesh::Mesh(smesh::Mesh in_mesh)
+{
+	convert2pmcMesh(in_mesh);
+}
+
+pvm::Vector3D pmc::Mesh::getCenter()
+{
+	pvm::Vector3D c(0,0,0);
+	int size = vertex_list.size();
 	for(int s=0;s<size;s++)
 	{
-		pvm::Vector3D temp = this_mesh.vertex_list[s];
-		center += temp;
+		pvm::Vector3D temp = vertex_list[s];
+		c += temp;
 	}
 
-	center = center / (float)size;
-	return center;
+	c = c / (float)size;
+	center = c;
+	return c;
 }
 
-pmc::getZbuffer::getZbuffer(smesh::Mesh in_mesh)
+void pmc::Mesh::convert2pmcMesh( smesh::Mesh this_mesh)
 {
-	mesh = convert2pmcMesh(in_mesh);
-}
 
-pmc::getZbuffer::getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height)
-{
-	mesh = convert2pmcMesh(KinectMesh);
-	TenboMesh = convert2pmcMesh(tenboMesh);
-
-	kwidth = in_width;
-	kheight = in_height;
-}
-
-pmc::Mesh pmc::getZbuffer::convert2pmcMesh(smesh::Mesh this_mesh)
-{
-	pmc::Mesh r_mesh;
-	r_mesh.vertex_list.resize(this_mesh.numOfVertex());
-	r_mesh.visibility_check.resize(this_mesh.numOfVertex());
-	r_mesh.face_list.resize(this_mesh.numOfFace());
-	r_mesh.getdepthImage = false;
+	vertex_list.resize(this_mesh.numOfVertex());
+	visibility_check.resize(this_mesh.numOfVertex());
+	face_list.resize(this_mesh.numOfFace());
+	getdepthImage = false;
 
 	for(int i = 0, h = this_mesh.numOfVertex(); i < h; i++) {
 		for(int j = 0; j < 3; j++) {
-			r_mesh.vertex_list[i].elem[j] = this_mesh.vertexCoord(i)[j];
+			vertex_list[i].elem[j] = this_mesh.vertexCoord(i)[j];
 		}
-		r_mesh.visibility_check[i] = false;
+		visibility_check[i] = false;
 	}
 
 	for(int i = 0, h = this_mesh.numOfFace(); i < h; i++) {
 		for(int j = 0; j < 3; j++) {
-			r_mesh.face_list[i].vertex[j] = this_mesh.vertexID(i,j);
+			face_list[i].vertex[j] = this_mesh.vertexID(i,j);
 		}
 	}
-	r_mesh.center = getCenter(r_mesh);
-	return r_mesh;
+	getCenter();
 }
 
-smesh::Mesh pmc::getZbuffer::convert2smesh(Mesh this_mesh)
+smesh::Mesh pmc::Mesh::convert2smesh()
 {
 	smesh::Mesh r_mesh;
 
-	for(int s=0;s<this_mesh.vertex_list.size();s++)
+	for(int s=0;s<vertex_list.size();s++)
 	{
 		pvm::Vector3D temp;
-		temp = this_mesh.vertex_list[s];
+		temp = vertex_list[s];
 		r_mesh.addVertex(temp);
 	}
 
-	for(int s=0;s<this_mesh.face_list.size();s++)
+	for(int s=0;s<face_list.size();s++)
 	{
-		Face pmctemp = this_mesh.face_list[0];
+		Face pmctemp = face_list[0];
 		r_mesh.addFace(pmctemp.vertex[0],pmctemp.vertex[1],pmctemp.vertex[2]);
 	}
 
 	return r_mesh;
 }
 
+pmc::getZbuffer::getZbuffer(smesh::Mesh in_mesh)
+{
+	mesh.convert2pmcMesh(in_mesh);
+}
 
+pmc::getZbuffer::getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height)
+{
+	mesh.convert2pmcMesh(KinectMesh);
+	TenboMesh.convert2pmcMesh(tenboMesh);
+
+	kwidth = in_width;
+	kheight = in_height;
+}
 
 void pmc::getZbuffer::Display(void)
 {
@@ -239,13 +250,10 @@ void pmc::getZbuffer::visibilty()
 		{
 			test.vertex_list.push_back(mesh.vertex_list[k]);
 			//test.visibility_check.push_back(true);
-			std::cout <<k<<std::endl;
+			//std::cout <<k<<std::endl;
 		}
 	}
-
-	std::cout <<"ok \n";
-
-	smesh::Mesh tt = convert2smesh(test);
+	smesh::Mesh tt = test.convert2smesh();
 	tt.writeVertex("result.txt");
 }
 

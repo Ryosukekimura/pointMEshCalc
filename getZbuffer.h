@@ -17,13 +17,23 @@ namespace pmc{
 		unsigned short vertex[3];
 	};
 
-	struct Mesh{
+	class Mesh{
+	public:
 		std::vector<pvm::Vector3D> vertex_list;
 		std::vector<bool> visibility_check;
 		std::vector<Face> face_list;
 		pvm::Vector3D center;
 
 		bool getdepthImage;
+		
+		Mesh();
+		Mesh(smesh::Mesh in_mesh);
+
+		void convert2pmcMesh(smesh::Mesh this_mesh);
+		smesh::Mesh  convert2smesh();
+
+	private:
+		pvm::Vector3D getCenter();
 	};
 
 	class getZbuffer{
@@ -45,9 +55,6 @@ namespace pmc{
 		getZbuffer(Mesh in_mesh,int in_width,int in_height){mesh = in_mesh; kwidth = in_width; kheight = in_height;};
 		getZbuffer(smesh::Mesh in_mesh);
 		getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height);
-
-		Mesh convert2pmcMesh(smesh::Mesh this_mesh);
-		smesh::Mesh convert2smesh(Mesh this_mesh);
 
 		void Display(void);
 		void DrawScene(Mesh this_mesh);
