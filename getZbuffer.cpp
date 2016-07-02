@@ -40,6 +40,7 @@ pmc::Mesh pmc::getZbuffer::convert2pmcMesh(smesh::Mesh this_mesh)
 		for(int j = 0; j < 3; j++) {
 			r_mesh.vertex_list[i].elem[j] = this_mesh.vertexCoord(i)[j];
 		}
+		r_mesh.visibility_check[i] = false;
 	}
 
 	for(int i = 0, h = this_mesh.numOfFace(); i < h; i++) {
@@ -210,56 +211,40 @@ float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 
 void pmc::getZbuffer::visibilty()
 {
-	std::vector<pmc::NearestPoint>n_p_list;
-	n_p_list.resize(mesh.vertex_list.size());
-	float aveDistance = 0;
-
-	for(int s=0;s<mesh.vertex_list.size();s++)
+	for( int s =0;s< depthMesh.vertex_list.size(); s++)
 	{
-		float temp = getNorm(mesh.vertex_list[s],depthMesh.vertex_list[0]);
-		for(int a=0;a<depthMesh.vertex_list.size();a++)
+		float n_distance = getNorm(depthMesh.vertex_list[s],mesh.vertex_list[0]);
+		int nearestNumber = 0;
+		for( int a=0;a < mesh.vertex_list.size();a++)
 		{
-			
-			float temp2 = 0;
-			temp2 = getNorm(mesh.vertex_list[s],depthMesh.vertex_list[a]);
-			//std::cout <<"norm "<<temp2 <<std::endl;
-
-			if(temp2 > 1000)
+			float temp = getNorm(depthMesh.vertex_list[s],mesh.vertex_list[a]);
+			if( n_distance > temp)
 			{
-				std::cout <<"depth "<<depthMesh.vertex_list[a].elem[0] << " "<< depthMesh.vertex_list[a].elem[1] << " "<< depthMesh.vertex_list[a].elem[2] << " "<< std::endl;
-				std::cout <<"mesh " << mesh.vertex_list[s].elem[0] <<" "<< mesh.vertex_list[s].elem[1] <<" "<< mesh.vertex_list[s].elem[2] <<std::endl;
-				system("PAUSE");
+				//std::cout << a<<std::endl;
+				n_distance = temp;
+				nearestNumber = a;
 			}
-
-			if(temp2 < temp)temp = temp2;
-
-			//std::cout << "test";
-			
 		}
-		
-		n_p_list[s].norm = temp;
-		aveDistance += temp;
-		mesh.visibility_check[s] = true;
+
+		mesh.visibility_check[nearestNumber] = true;
 	}
 	
-	aveDistance = aveDistance/(float)mesh.vertex_list.size();
-
-	std::cout <<"aveDistance:"<<aveDistance<<std::endl;
+	std::cout << "visibility check ok" << std::endl;
 	Mesh test;
-	for(int s=0;s<mesh.vertex_list.size();s++)
-	{
-		if(n_p_list[s].norm > aveDistance)
-		{
-			mesh.visibility_check[s] = false;
-		}
 
-		if(mesh.visibility_check[s] == true)
+	std::cout << mesh.vertex_list.size()<<"\n";
+	for(int k=0;k<mesh.vertex_list.size();k++)
+	{
+		if(mesh.visibility_check[k] == true)
 		{
-			test.vertex_list.push_back(mesh.vertex_list[s]);
+			test.vertex_list.push_back(mesh.vertex_list[k]);
+			//test.visibility_check.push_back(true);
+			std::cout <<k<<std::endl;
 		}
 	}
 
-	
+	std::cout <<"ok \n";
+
 	smesh::Mesh tt = convert2smesh(test);
 	tt.writeVertex("result.txt");
 }
