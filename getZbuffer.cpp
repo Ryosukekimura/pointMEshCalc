@@ -91,9 +91,9 @@ void pmc::getZbuffer::Display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//gluLookAt(0.0,0.0,0.0,  mesh.center.elem[0],mesh.center.elem[1],mesh.center.elem[2]  ,0.0,1.0,0.0);
+	gluLookAt(0.0,0.0,0.0,  mesh.center.elem[0],mesh.center.elem[1],mesh.center.elem[2]  ,0.0,1.0,0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glTranslatef(-mesh.center.elem[0],-mesh.center.elem[1],0);
+	//glTranslatef(-mesh.center.elem[0],-mesh.center.elem[1],0);
 	DrawScene(mesh);
 	//glEnd();
 	//glFlush();
@@ -106,11 +106,27 @@ void pmc::getZbuffer::Display(void)
 
 void pmc::getZbuffer::DrawScene(Mesh this_mesh)
 {
+	unsigned int colIdx = 0;
+	glBegin(GL_TRIANGLES);
+	for(unsigned int i=0; i<this_mesh.face_list.size(); i++){
+		
+		glColor3ubv((GLubyte*)(&colIdx));
+		pvm::Vector3D v1 = this_mesh.vertex_list[this_mesh.face_list[i].vertex[0]];
+		pvm::Vector3D v2 = this_mesh.vertex_list[this_mesh.face_list[i].vertex[1]];
+		pvm::Vector3D v3 = this_mesh.vertex_list[this_mesh.face_list[i].vertex[2]];
+		
+		glVertex3d(v1.elem[0], v1.elem[1], v1.elem[2]);
+		glVertex3d(v2.elem[0], v2.elem[1], v2.elem[2]);
+		glVertex3d(v3.elem[0], v3.elem[1], v3.elem[2]);
+		colIdx += 1;
+	}
+	glEnd();
+
 	//glutSolidTeapot(1.0);
-	glVertexPointer(3, GL_FLOAT, 0, this_mesh.vertex_list[0].elem);
+	/*glVertexPointer(3, GL_FLOAT, 0, this_mesh.vertex_list[0].elem);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glDrawElements(GL_TRIANGLES, this_mesh.face_list.size() * 3, GL_UNSIGNED_SHORT, this_mesh.face_list[0].vertex);
+	glDrawElements(GL_TRIANGLES, this_mesh.face_list.size() * 3, GL_UNSIGNED_SHORT, this_mesh.face_list[0].vertex);*/
 }
 
 void pmc::getZbuffer::Resize(int width,int height)
@@ -172,8 +188,10 @@ void pmc::getZbuffer::saveDepthImage()
 	smImageFloat distImg(kwidth, kheight);
 
 	double modelviewmat[16],projmat[16];
-	int viewport[4];
+	int viewport[4] ;
 	glGetIntegerv(GL_VIEWPORT,viewport);	// 現在のビューポートを代入
+
+	std::cout << viewport[0]<<" "<<viewport[1]<<" "<<viewport[2]<<" "<<viewport[3]<<"\n ";
 	glGetDoublev(GL_PROJECTION_MATRIX, projmat);	// 現在のプロジェクション行列を代入
 	//glGetDoublev(GL_MODELVIEW_MATRIX, modelviewmat);	// 現在のモデルビュー行列を代入
 	showMatrix(projmat);
@@ -194,15 +212,16 @@ void pmc::getZbuffer::saveDepthImage()
 			distImg(cnt1,cnt2)=-camZ;
 			distmap[cnt1][cnt2] = camZ;
 
-			pvm::Vector3D temp((float)camX + mesh.center.elem[0],(float)camY + mesh.center.elem[1],(float)camZ);
+			pvm::Vector3D temp((float)camX,(float)camY,(float)camZ);
 			if(temp.elem[2] > -1000) depthMesh.vertex_list.push_back(temp);
 
 		}
 	}
 
 	visibilty();
-	//smesh::Mesh tt;
-	//tt = convert2smesh(depthMesh);
+	smesh::Mesh tt;
+	tt = depthMesh.convert2smesh();
+	tt.writeVertex("visib_result.txt");
 	const char* fileName="depthImage.bmp";
 	printf("depthBuffer saved as %s\n",fileName);
 	distImg.writeBMP24BitInt(fileName,0.0001);
