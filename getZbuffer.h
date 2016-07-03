@@ -3,6 +3,7 @@
 #include "simpleimage.h"
 #include "glut.h"
 #include <math.h>
+#include "opencv2\opencv.hpp"
 
 #pragma once;
 
@@ -63,6 +64,9 @@ namespace pmc{
 		void keyboard(unsigned char key, int x, int y);
 
 		void saveDepthImage();
+		void saveDepthImage2(); //メッシュの色から可視判定
+
+		void outputVisibilityPoint(std::string name ="result.txt"); //meshの見えてる部分を出力
 
 		void showMatrix(double matrix[16]);
 		

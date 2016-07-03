@@ -49,6 +49,7 @@ void pmc::Mesh::convert2pmcMesh( smesh::Mesh this_mesh)
 		}
 	}
 	getCenter();
+	getdepthImage = false;
 }
 
 smesh::Mesh pmc::Mesh::convert2smesh()
@@ -155,7 +156,8 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 {
 	switch(key) {
 	case 'd':
-		saveDepthImage();
+		//saveDepthImage();
+		saveDepthImage2();
 		break;
 
 	}
@@ -228,6 +230,61 @@ void pmc::getZbuffer::saveDepthImage()
 	mesh.getdepthImage = true;
 }
 
+void pmc::getZbuffer::outputVisibilityPoint(std::string name)
+{
+	if(mesh.getdepthImage == false)
+	{
+		std::cout <<"‰ÂŽ‹”»’è‚ªI‚í‚Á‚Ä‚¢‚Ü‚¹‚ñ"<<std::endl;
+		return;
+	}
+	
+	Mesh test;
+	for(int k=0;k<mesh.vertex_list.size();k++)
+	{
+		if(mesh.visibility_check[k] == true)
+		{
+			test.vertex_list.push_back(mesh.vertex_list[k]);
+		}
+	}
+	
+	smesh::Mesh tt = test.convert2smesh();
+	tt.writeVertex(name.c_str());
+}
+
+void pmc::getZbuffer::saveDepthImage2()
+{
+	std::cout << "show depth image" << std::endl;
+	cv::Mat idxImg = cv::Mat(kheight,kwidth, CV_8UC3);
+	glReadPixels(0,0,idxImg.cols,idxImg.rows,GL_RGB,  GL_UNSIGNED_BYTE, idxImg.data);
+	cv::flip(idxImg, idxImg, 0);
+	cv::imshow("index",idxImg);
+	cv::waitKey(1);
+
+	std::vector<int> frontVertices(mesh.vertex_list.size(), 0);
+	std::vector<int> frontFaces(mesh.face_list.size(), 0);
+
+
+	for(int i=0; i<idxImg.rows; i++){
+		for(int j=0; j<idxImg.cols; j++){
+			unsigned int sufIdx = *(unsigned int*)(idxImg.data + (i * idxImg.cols + j) * 3);
+			sufIdx &= 0x00ffffff;
+			if(sufIdx == 0x00ffffff)
+				continue;
+			if(frontFaces[sufIdx] == 0){
+				frontFaces[sufIdx] = 1;
+				Face f = mesh.face_list[sufIdx];
+				
+				for(int a=0;a<3;a++)
+				{
+					mesh.visibility_check[f.vertex[a]] = true;
+				}
+			}
+		}
+	}
+	mesh.getdepthImage = true;
+	outputVisibilityPoint("result_new.txt");
+	std::cout << "save bisibul data ok" << std::endl;
+}
 float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 {
 	float distance;
