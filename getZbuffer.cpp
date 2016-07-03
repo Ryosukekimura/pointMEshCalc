@@ -94,10 +94,8 @@ void pmc::getZbuffer::Display(void)
 
 	gluLookAt(0.0,0.0,0.0,  mesh.center.elem[0],mesh.center.elem[1],mesh.center.elem[2]  ,0.0,1.0,0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glTranslatef(-mesh.center.elem[0],-mesh.center.elem[1],0);
+	
 	DrawScene(mesh);
-	//glEnd();
-	//glFlush();
 
 	glFlush();
 	//　ダブルバッファ
@@ -122,12 +120,6 @@ void pmc::getZbuffer::DrawScene(Mesh this_mesh)
 		colIdx += 1;
 	}
 	glEnd();
-
-	//glutSolidTeapot(1.0);
-	/*glVertexPointer(3, GL_FLOAT, 0, this_mesh.vertex_list[0].elem);
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	glDrawElements(GL_TRIANGLES, this_mesh.face_list.size() * 3, GL_UNSIGNED_SHORT, this_mesh.face_list[0].vertex);*/
 }
 
 void pmc::getZbuffer::Resize(int width,int height)
@@ -137,7 +129,7 @@ void pmc::getZbuffer::Resize(int width,int height)
 	glMatrixMode(GL_PROJECTION);
 
 	glLoadIdentity();
-	//glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, -1.0); 
+	
 	gluPerspective(40.0, (double)width/(double)height, 1.0, 1000.0);
 }
 
@@ -169,65 +161,6 @@ void pmc::getZbuffer::showMatrix(double matrix[16])
 	std::cout << matrix[1] <<" "<< matrix[5] <<" "<< matrix[9] <<" "<< matrix[13] <<std::endl;
 	std::cout << matrix[2] <<" "<< matrix[6] <<" "<< matrix[10] <<" "<< matrix[14] <<std::endl;
 	std::cout << matrix[3] <<" "<< matrix[7] <<" "<< matrix[11] <<" "<< matrix[15] <<std::endl;
-}
-
-void pmc::getZbuffer::saveDepthImage()
-{
-	std::cout << "save depth image" << std::endl;
-
-	// デプスバッファの内容を取得する
-	// ｚバッファの読み出し
-	std::vector<float> z_buf(kwidth * kheight);
-	distmap.resize(kwidth);
-	for(int s=0;s<distmap.size();s++)
-	{
-		distmap[s].resize(kheight);
-	}
-
-	glReadPixels(0, 0, kwidth, kheight, GL_DEPTH_COMPONENT, GL_FLOAT, &(z_buf[0]));
-
-	//距離画像への変換
-	smImageFloat distImg(kwidth, kheight);
-
-	double modelviewmat[16],projmat[16];
-	int viewport[4] ;
-	glGetIntegerv(GL_VIEWPORT,viewport);	// 現在のビューポートを代入
-
-	std::cout << viewport[0]<<" "<<viewport[1]<<" "<<viewport[2]<<" "<<viewport[3]<<"\n ";
-	glGetDoublev(GL_PROJECTION_MATRIX, projmat);	// 現在のプロジェクション行列を代入
-	//glGetDoublev(GL_MODELVIEW_MATRIX, modelviewmat);	// 現在のモデルビュー行列を代入
-	showMatrix(projmat);
-	//smesh::Mesh depthmesh;
-
-	//モデルビューとして単位行列を使う
-	for(int i=0; i<16; ++i){modelviewmat[i]=0.0;}
-	modelviewmat[0]=modelviewmat[5]=modelviewmat[10]=modelviewmat[15]=1.0;
-
-	for(int cnt2=0; cnt2<kheight; ++cnt2){
-		for(int cnt1=0; cnt1<kwidth; ++cnt1){
-			float zval=z_buf[kwidth*cnt2+cnt1];
-			double camX,camY,camZ;
-			gluUnProject(cnt1,cnt2,zval,modelviewmat,projmat,viewport,&camX,&camY,&camZ);
-			//std::cout << "z:" << camZ << std::endl;
-			//カメラ座標系でのZが距離画像の値
-			//ただし、そのままだとマイナスの値になるので、符号を逆転
-			distImg(cnt1,cnt2)=-camZ;
-			distmap[cnt1][cnt2] = camZ;
-
-			pvm::Vector3D temp((float)camX,(float)camY,(float)camZ);
-			if(temp.elem[2] > -1000) depthMesh.vertex_list.push_back(temp);
-
-		}
-	}
-
-	visibilty();
-	smesh::Mesh tt;
-	tt = depthMesh.convert2smesh();
-	tt.writeVertex("visib_result.txt");
-	const char* fileName="depthImage.bmp";
-	printf("depthBuffer saved as %s\n",fileName);
-	distImg.writeBMP24BitInt(fileName,0.0001);
-	mesh.getdepthImage = true;
 }
 
 void pmc::getZbuffer::outputVisibilityPoint(std::string name)
@@ -282,7 +215,7 @@ void pmc::getZbuffer::saveDepthImage2()
 		}
 	}
 	mesh.getdepthImage = true;
-	outputVisibilityPoint("result_new.txt");
+	outputVisibilityPoint();
 	std::cout << "save bisibul data ok" << std::endl;
 }
 float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
@@ -294,43 +227,6 @@ float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 	distance = sqrt(temp);
 
 	return distance;
-}
-
-void pmc::getZbuffer::visibilty()
-{
-	for( int s =0;s< depthMesh.vertex_list.size(); s++)
-	{
-		float n_distance = getNorm(depthMesh.vertex_list[s],mesh.vertex_list[0]);
-		int nearestNumber = 0;
-		for( int a=0;a < mesh.vertex_list.size();a++)
-		{
-			float temp = getNorm(depthMesh.vertex_list[s],mesh.vertex_list[a]);
-			if( n_distance > temp)
-			{
-				//std::cout << a<<std::endl;
-				n_distance = temp;
-				nearestNumber = a;
-			}
-		}
-
-		mesh.visibility_check[nearestNumber] = true;
-	}
-	
-	std::cout << "visibility check ok" << std::endl;
-	Mesh test;
-
-	std::cout << mesh.vertex_list.size()<<"\n";
-	for(int k=0;k<mesh.vertex_list.size();k++)
-	{
-		if(mesh.visibility_check[k] == true)
-		{
-			test.vertex_list.push_back(mesh.vertex_list[k]);
-			//test.visibility_check.push_back(true);
-			//std::cout <<k<<std::endl;
-		}
-	}
-	smesh::Mesh tt = test.convert2smesh();
-	tt.writeVertex("result.txt");
 }
 
 void pmc::getZbuffer::getDistanceKinect2Tenbo()

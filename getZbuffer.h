@@ -63,7 +63,6 @@ namespace pmc{
 		void Init(void);
 		void keyboard(unsigned char key, int x, int y);
 
-		void saveDepthImage();
 		void saveDepthImage2(); //メッシュの色から可視判定
 
 		void outputVisibilityPoint(std::string name ="result.txt"); //meshの見えてる部分を出力
@@ -71,7 +70,6 @@ namespace pmc{
 		void showMatrix(double matrix[16]);
 		
 		float getNorm(pvm::Vector3D a,pvm::Vector3D b);
-		void visibilty();
 
 		void getDistanceKinect2Tenbo();
 	};
