@@ -51,7 +51,8 @@ void test2()
 
 static void display(void)
 {
-	gz.Display();
+	//gz.Display();
+	gz.Display_all();
 }
 
 void resize(int w, int h)
@@ -83,11 +84,12 @@ int main(int argc, char *argv[])
 	smesh::Mesh kinect;
 
 	tenbo.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-shape.obj");
-	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/2-vert.obj");
+	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-vert.obj");
 	kinect.writeVertex("kinect_out.txt");
 	pte = new pmc::pointMeshCalc(tenbo,kinect);
 	
-	pmc::getZbuffer temp(kinect,tenbo,kWindowWidth,kWindowHeight);
+	//pmc::getZbuffer temp(tenbo,kinect,kWindowWidth,kWindowHeight);
+	pmc::getZbuffer temp(14,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
 	gz = temp;
 
 	system("PAUSE");

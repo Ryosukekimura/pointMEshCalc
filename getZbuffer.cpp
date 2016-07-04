@@ -80,9 +80,14 @@ smesh::Mesh pmc::Mesh::convert2smesh()
 /////////////getZbuffer class//////////////////
 ///////////////////////////////////////////////
 
+
+////////////コンストラクタ/////////////////////
+
+
 pmc::getZbuffer::getZbuffer(smesh::Mesh in_mesh)
 {
 	mesh.convert2pmcMesh(in_mesh);
+	
 }
 
 pmc::getZbuffer::getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_width,int in_height)
@@ -92,6 +97,35 @@ pmc::getZbuffer::getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_
 
 	kwidth = in_width;
 	kheight = in_height;
+}
+
+//read all file mesh1(Tenbo) mesh2(kinect)
+pmc::getZbuffer::getZbuffer(int meshNum,std::string meshListName1,std::string meshListName2,int in_width,int in_height)
+{
+	kwidth = in_width;
+	kheight = in_height;
+
+	meshCount = 0;
+
+	char str[100];
+	for(int s=0;s<meshNum;s++)
+	{
+		smesh::Mesh stemp;
+		Mesh ptemp;
+
+		sprintf(str,meshListName1.c_str(),s);
+		stemp.readObj(str);
+		ptemp.convert2pmcMesh(stemp);
+		meshList1.push_back(ptemp);
+		std::cout << str<<std::endl;
+		stemp.clearAll();
+
+		sprintf(str,meshListName2.c_str(),s);
+		std::cout << str<<std::endl;
+		stemp.readObj(str);
+		ptemp.convert2pmcMesh(stemp);
+		meshList2.push_back(ptemp);
+	}
 }
 
 void pmc::getZbuffer::Display(void)
@@ -109,6 +143,35 @@ void pmc::getZbuffer::Display(void)
 	//　ダブルバッファ
 	glutSwapBuffers();
 
+}
+
+void pmc::getZbuffer::Display_all(void)
+{
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	gluLookAt(0.0,0.0,0.0,  meshList2[0].center.elem[0],meshList2[0].center.elem[1],meshList2[0].center.elem[2]  ,0.0,1.0,0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	DrawScene(meshList2[meshCount]);
+
+	glFlush();
+	runAnimation();
+	//　ダブルバッファ
+	glutSwapBuffers();
+	
+}
+
+void pmc::getZbuffer::runAnimation()
+{
+	std::cout << meshList2.size() << std::endl;
+	if(meshCount >= meshList2.size()-1){ 
+		meshCount=0; 
+		return;
+	}
+
+	meshCount++;
+	//std::cout << meshCount << std::endl;
 }
 
 void pmc::getZbuffer::DrawScene(Mesh this_mesh)
@@ -159,7 +222,6 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 		saveDepthImage2(&mesh);
 		getDistanceTenbo2Kinect();
 		break;
-
 	}
 }
 
