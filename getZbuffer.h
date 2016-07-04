@@ -48,6 +48,11 @@ namespace pmc{
 		//test data
 		Mesh mesh;
 		Mesh TenboMesh;
+		std::vector<pvm::Vector3D> distanceL;
+
+		//calc meshes
+		std::vector<Mesh> meshList1;
+		std::vector<Mesh> meshList2;
 
 		std::vector<std::vector<float>> distmap;
 
@@ -56,7 +61,7 @@ namespace pmc{
 		getZbuffer(Mesh in_mesh){mesh = in_mesh;};
 		getZbuffer(Mesh in_mesh,int in_width,int in_height){mesh = in_mesh; kwidth = in_width; kheight = in_height;};
 		getZbuffer(smesh::Mesh in_mesh);
-		getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height);
+		getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_width,int in_height);
 
 		void Display(void);
 		void DrawScene(Mesh this_mesh);
@@ -64,7 +69,7 @@ namespace pmc{
 		void Init(void);
 		void keyboard(unsigned char key, int x, int y);
 
-		Mesh saveDepthImage2(Mesh this_mesh); //メッシュの色から可視判定
+		void saveDepthImage2(Mesh *this_mesh); //メッシュの色から可視判定
 
 		void outputVisibilityPoint(Mesh this_mesh,std::string name ="result.txt"); //meshの見えてる部分を出力
 
@@ -72,6 +77,9 @@ namespace pmc{
 		
 		float getNorm(pvm::Vector3D a,pvm::Vector3D b);
 
-		void getDistanceKinect2Tenbo(Mesh mesh1,Mesh mesh2);
+		void getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList);
+		void moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2);
+		void getDistanceTenbo2Kinect();
+		void printDistance(std::vector<pvm::Vector3D> distanceList,std::string fileName = "distance.csv");
 	};
 }

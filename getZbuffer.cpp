@@ -1,5 +1,9 @@
 #include "getZbuffer.h"
 
+///////////////////////////////////////////////
+///////////////////mesh class//////////////////
+///////////////////////////////////////////////
+
 pmc::Mesh::Mesh()
 {
 	vertex_list.resize(0);
@@ -72,12 +76,16 @@ smesh::Mesh pmc::Mesh::convert2smesh()
 	return r_mesh;
 }
 
+///////////////////////////////////////////////
+/////////////getZbuffer class//////////////////
+///////////////////////////////////////////////
+
 pmc::getZbuffer::getZbuffer(smesh::Mesh in_mesh)
 {
 	mesh.convert2pmcMesh(in_mesh);
 }
 
-pmc::getZbuffer::getZbuffer(smesh::Mesh KinectMesh,smesh::Mesh tenboMesh,int in_width,int in_height)
+pmc::getZbuffer::getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_width,int in_height)
 {
 	mesh.convert2pmcMesh(KinectMesh);
 	TenboMesh.convert2pmcMesh(tenboMesh);
@@ -148,8 +156,8 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 {
 	switch(key) {
 	case 'd':
-		//saveDepthImage();
-		saveDepthImage2(mesh);
+		saveDepthImage2(&mesh);
+		getDistanceTenbo2Kinect();
 		break;
 
 	}
@@ -182,9 +190,10 @@ void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 	
 	smesh::Mesh tt = test.convert2smesh();
 	tt.writeVertex(name.c_str());
+	std::cout << "save bisible data ok" << std::endl;
 }
 
-pmc::Mesh pmc::getZbuffer::saveDepthImage2(Mesh this_mesh)
+void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)‚Ì‰ÂŽ‹”»’è
 {
 	//from NAIST 
 	std::cout << "show depth image" << std::endl;
@@ -194,8 +203,8 @@ pmc::Mesh pmc::getZbuffer::saveDepthImage2(Mesh this_mesh)
 	cv::imshow("index",idxImg);
 	cv::waitKey(1);
 
-	std::vector<int> frontVertices(this_mesh.vertex_list.size(), 0);
-	std::vector<int> frontFaces(this_mesh.face_list.size(), 0);
+	std::vector<int> frontVertices(this_mesh->vertex_list.size(), 0);
+	std::vector<int> frontFaces(this_mesh->face_list.size(), 0);
 
 
 	for(int i=0; i<idxImg.rows; i++){
@@ -206,22 +215,20 @@ pmc::Mesh pmc::getZbuffer::saveDepthImage2(Mesh this_mesh)
 				continue;
 			if(frontFaces[sufIdx] == 0){
 				frontFaces[sufIdx] = 1;
-				Face f = this_mesh.face_list[sufIdx];
+				Face f = this_mesh->face_list[sufIdx];
 				
 				for(int a=0;a<3;a++)
 				{
-					this_mesh.visibility_check[f.vertex[a]] = true;
+					this_mesh->visibility_check[f.vertex[a]] = true;
 				}
 			}
 		}
 	}
-	this_mesh.getdepthImage = true;
+	this_mesh->getdepthImage = true;
 	//outputVisibilityPoint(this_mesh); //dubeg 
-	std::cout << "save bisibul data ok" << std::endl;
-
-	return this_mesh;
+	std::cout << "get depth buffer ok" << std::endl;
 }
-float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
+float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b) //b-a norm
 {
 	float distance;
 	float temp;
@@ -232,7 +239,57 @@ float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 	return distance;
 }
 
-void pmc::getZbuffer::getDistanceKinect2Tenbo(Mesh mesh1,Mesh mesh2)
+void pmc::getZbuffer::moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2)//move mesh1(tenbo) -> mesh2(kinect)
 {
+	pvm::Vector3D dist = mesh1->center - mesh2->center;
+	
+	for(int a=0;a<mesh1->vertex_list.size();a++)
+	{
+		mesh1->vertex_list[a] = mesh1->vertex_list[a] - dist;
+	}
+}
 
+void pmc::getZbuffer::getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList)//mesh2(visible) - mesh1 mesh2:kinectFitting mesh1:tenboOutput
+{
+	std::cout <<"calc distance ";
+	if(mesh2.getdepthImage == false)
+	{
+		std::cout<<"false ‰ÂŽ‹”»’è‚ª‚¨‚í‚Á‚Ä‚¢‚Ü‚¹‚ñ\n";
+		return;
+	}
+
+	moveMesh2Mesh(&mesh1,&mesh2);
+	
+	for(int a=0;a<mesh2.vertex_list.size();a++)
+	{
+		
+		pvm::Vector3D temp;
+		if(mesh2.visibility_check[a] == true)
+		{
+			temp = mesh2.vertex_list[a] - mesh1.vertex_list[a];
+		}else{
+			temp.setElement(-1000,-1000,-1000);
+		}
+
+		distanceList->push_back(temp);
+	}
+	std::cout <<"ok\n";
+	printDistance(*distanceList);
+}
+
+void pmc::getZbuffer::getDistanceTenbo2Kinect()
+{
+	getDistanceMesh2Mesh(TenboMesh,mesh,&distanceL);
+}
+
+void pmc::getZbuffer::printDistance(std::vector<pvm::Vector3D> distanceList,std::string fileName)
+{
+	std::ofstream ofs(fileName);
+	std::cout <<"distance list "<< fileName << " out put" << std::endl;
+	for(int a=0;a<distanceList.size();a++)
+	{
+		for(int b=0;b<3;b++)
+			ofs << distanceList[a].elem[b]<<",";
+		ofs<<std::endl;
+	}
 }
