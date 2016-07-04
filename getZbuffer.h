@@ -44,8 +44,9 @@ namespace pmc{
 		int kheight;
 		int resize_width_ ,resize_height_;
 
+
+		//test data
 		Mesh mesh;
-		Mesh depthMesh;
 		Mesh TenboMesh;
 
 		std::vector<std::vector<float>> distmap;
@@ -63,14 +64,14 @@ namespace pmc{
 		void Init(void);
 		void keyboard(unsigned char key, int x, int y);
 
-		void saveDepthImage2(); //メッシュの色から可視判定
+		Mesh saveDepthImage2(Mesh this_mesh); //メッシュの色から可視判定
 
-		void outputVisibilityPoint(std::string name ="result.txt"); //meshの見えてる部分を出力
+		void outputVisibilityPoint(Mesh this_mesh,std::string name ="result.txt"); //meshの見えてる部分を出力
 
 		void showMatrix(double matrix[16]);
 		
 		float getNorm(pvm::Vector3D a,pvm::Vector3D b);
 
-		void getDistanceKinect2Tenbo();
+		void getDistanceKinect2Tenbo(Mesh mesh1,Mesh mesh2);
 	};
 }

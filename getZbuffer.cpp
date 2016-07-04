@@ -149,7 +149,7 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 	switch(key) {
 	case 'd':
 		//saveDepthImage();
-		saveDepthImage2();
+		saveDepthImage2(mesh);
 		break;
 
 	}
@@ -163,20 +163,20 @@ void pmc::getZbuffer::showMatrix(double matrix[16])
 	std::cout << matrix[3] <<" "<< matrix[7] <<" "<< matrix[11] <<" "<< matrix[15] <<std::endl;
 }
 
-void pmc::getZbuffer::outputVisibilityPoint(std::string name)
+void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 {
-	if(mesh.getdepthImage == false)
+	if(this_mesh.getdepthImage == false)
 	{
 		std::cout <<"‰ÂŽ‹”»’è‚ªI‚í‚Á‚Ä‚¢‚Ü‚¹‚ñ"<<std::endl;
 		return;
 	}
 	
 	Mesh test;
-	for(int k=0;k<mesh.vertex_list.size();k++)
+	for(int k=0;k<this_mesh.vertex_list.size();k++)
 	{
-		if(mesh.visibility_check[k] == true)
+		if(this_mesh.visibility_check[k] == true)
 		{
-			test.vertex_list.push_back(mesh.vertex_list[k]);
+			test.vertex_list.push_back(this_mesh.vertex_list[k]);
 		}
 	}
 	
@@ -184,8 +184,9 @@ void pmc::getZbuffer::outputVisibilityPoint(std::string name)
 	tt.writeVertex(name.c_str());
 }
 
-void pmc::getZbuffer::saveDepthImage2()
+pmc::Mesh pmc::getZbuffer::saveDepthImage2(Mesh this_mesh)
 {
+	//from NAIST 
 	std::cout << "show depth image" << std::endl;
 	cv::Mat idxImg = cv::Mat(kheight,kwidth, CV_8UC3);
 	glReadPixels(0,0,idxImg.cols,idxImg.rows,GL_RGB,  GL_UNSIGNED_BYTE, idxImg.data);
@@ -193,8 +194,8 @@ void pmc::getZbuffer::saveDepthImage2()
 	cv::imshow("index",idxImg);
 	cv::waitKey(1);
 
-	std::vector<int> frontVertices(mesh.vertex_list.size(), 0);
-	std::vector<int> frontFaces(mesh.face_list.size(), 0);
+	std::vector<int> frontVertices(this_mesh.vertex_list.size(), 0);
+	std::vector<int> frontFaces(this_mesh.face_list.size(), 0);
 
 
 	for(int i=0; i<idxImg.rows; i++){
@@ -205,18 +206,20 @@ void pmc::getZbuffer::saveDepthImage2()
 				continue;
 			if(frontFaces[sufIdx] == 0){
 				frontFaces[sufIdx] = 1;
-				Face f = mesh.face_list[sufIdx];
+				Face f = this_mesh.face_list[sufIdx];
 				
 				for(int a=0;a<3;a++)
 				{
-					mesh.visibility_check[f.vertex[a]] = true;
+					this_mesh.visibility_check[f.vertex[a]] = true;
 				}
 			}
 		}
 	}
-	mesh.getdepthImage = true;
-	outputVisibilityPoint();
+	this_mesh.getdepthImage = true;
+	//outputVisibilityPoint(this_mesh); //dubeg 
 	std::cout << "save bisibul data ok" << std::endl;
+
+	return this_mesh;
 }
 float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 {
@@ -229,7 +232,7 @@ float pmc::getZbuffer::getNorm(pvm::Vector3D a,pvm::Vector3D b)
 	return distance;
 }
 
-void pmc::getZbuffer::getDistanceKinect2Tenbo()
+void pmc::getZbuffer::getDistanceKinect2Tenbo(Mesh mesh1,Mesh mesh2)
 {
 
 }

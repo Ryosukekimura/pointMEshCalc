@@ -143,5 +143,5 @@ void pmc::pointMeshCalc::GetSimpleDistances()
 
 void pmc::pointMeshCalc::test()
 {
-	//GetSimpleDistances();
+	GetSimpleDistances();
 }
