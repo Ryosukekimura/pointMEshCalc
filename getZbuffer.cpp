@@ -154,9 +154,11 @@ void pmc::getZbuffer::Display_all(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	DrawScene(meshList2[meshCount]);
+	visibleCheckAndDistances(meshCount,meshList1[meshCount],meshList2[meshCount]);
 
 	glFlush();
 	runAnimation();
+	
 	//　ダブルバッファ
 	glutSwapBuffers();
 	
@@ -262,8 +264,8 @@ void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)の可
 	cv::Mat idxImg = cv::Mat(kheight,kwidth, CV_8UC3);
 	glReadPixels(0,0,idxImg.cols,idxImg.rows,GL_RGB,  GL_UNSIGNED_BYTE, idxImg.data);
 	cv::flip(idxImg, idxImg, 0);
-	cv::imshow("index",idxImg);
-	cv::waitKey(1);
+	//cv::imshow("index",idxImg);
+	//cv::waitKey(1);
 
 	std::vector<int> frontVertices(this_mesh->vertex_list.size(), 0);
 	std::vector<int> frontFaces(this_mesh->face_list.size(), 0);
@@ -336,12 +338,26 @@ void pmc::getZbuffer::getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pv
 		distanceList->push_back(temp);
 	}
 	std::cout <<"ok\n";
-	printDistance(*distanceList);
+	//printDistance(*distanceList);
 }
 
 void pmc::getZbuffer::getDistanceTenbo2Kinect()
 {
 	getDistanceMesh2Mesh(TenboMesh,mesh,&distanceL);
+}
+
+
+
+void pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
+{
+	if(mesh1.getdepthImage == true) return;
+
+	std::vector<pvm::Vector3D> distanceListTemp;
+	char str[100];
+	saveDepthImage2(&mesh2);
+	getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
+	sprintf(str,"distance_%03d.csv",num);
+	printDistance(distanceListTemp,str);
 }
 
 void pmc::getZbuffer::printDistance(std::vector<pvm::Vector3D> distanceList,std::string fileName)
