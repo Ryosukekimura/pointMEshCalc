@@ -1,9 +1,4 @@
-#include <fstream>
-#include "simplemesh.h"
-#include "simpleimage.h"
-#include "glut.h"
-#include <math.h>
-#include "opencv2\opencv.hpp"
+#include "MyLibs.h"
 
 #pragma once;
 
@@ -20,19 +15,23 @@ namespace pmc{
 
 	class Mesh{
 	public:
-		std::vector<pvm::Vector3D> vertex_list;
-		std::vector<bool> visibility_check;
-		std::vector<Face> face_list;
-		pvm::Vector3D center;
-
-		bool getdepthImage;
 		
 		Mesh();
 		Mesh(std::string filename);
 		Mesh(smesh::Mesh in_mesh);
 
-		void convert2pmcMesh(smesh::Mesh this_mesh);
-		smesh::Mesh  convert2smesh();
+		std::vector<pvm::Vector3D> vertex_list;
+		std::vector<bool> visibility_check; //true:visible flase:not visible
+		std::vector<smesh::RGBuchar> color_list;
+		std::vector<Face> face_list;
+		pvm::Vector3D center;
+
+		bool getdepthImage; // true:visible check finish
+		
+		void convert2pmcMesh(smesh::Mesh this_mesh); //smesh -> pmcmesh
+		smesh::Mesh  convert2smesh(); //pmcmesh -> smesh
+		void writeobj(std::string name); // obj書き込み
+		void writeply(std::string name);// ply 書き込み
 
 	private:
 		pvm::Vector3D getCenter();
@@ -60,7 +59,7 @@ namespace pmc{
 
 		//コンストラクタ
 		getZbuffer(){};
-		getZbuffer(Mesh in_mesh){mesh = in_mesh;};
+		getZbuffer(Mesh in_mesh){mesh = in_mesh;}; 
 		getZbuffer(Mesh in_mesh,int in_width,int in_height){mesh = in_mesh; kwidth = in_width; kheight = in_height;};
 		getZbuffer(smesh::Mesh in_mesh);
 		getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_width,int in_height);
@@ -89,8 +88,8 @@ namespace pmc{
 		
 		//calc distance
 		void getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList);
-		void moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2);
-		void getDistanceTenbo2Kinect();
+		void moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2);//重心移動
+		void getDistanceTenbo2Kinect();//
 		void visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2);
 		void printDistance(std::vector<pvm::Vector3D> distanceList,std::string fileName = "distance.csv");
 	
