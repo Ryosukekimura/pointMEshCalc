@@ -1,4 +1,5 @@
 #include "pointsMeshCalc.h"
+#include "addColorFromDistance.h"
 
 int kWindowWidth = 512;
 int kWindowHeight = 424;
@@ -28,6 +29,14 @@ void test(void)
 		me.addColor(col);
 	}
 	me.writeInPly("coltest.ply");
+}
+void test3(void)
+{
+	pmc::addColorFromDistance acfd;
+	acfd.getIndexList("ind.txt");
+	acfd.getDistanceList("b.txt");
+	acfd.mesh.readobj("0-vert.obj");
+	acfd.convertDistanceToColors();
 }
 
 void test2(void)
@@ -75,20 +84,11 @@ static void init(void)
 {
 	gz.Init();
 }
-int main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
-
-	test();
-	test2();
-	smesh::Mesh tenbo;
-	smesh::Mesh kinect;
-
-	tenbo.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-shape.obj");
-	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-vert.obj");
+	//test();
+	//test2();
 	
-	pte = new pmc::pointMeshCalc(tenbo,kinect);
-	
-	//pmc::getZbuffer temp(tenbo,kinect,kWindowWidth,kWindowHeight);
 	pmc::getZbuffer temp(1,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
 	gz = temp;
 	
@@ -105,6 +105,13 @@ int main(int argc, char *argv[])
 	init();
 
 	glutMainLoop();
+	
+	return 0;
+}
+
+int main()
+{
+	test3();
 	
 	return 0;
 }

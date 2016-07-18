@@ -10,6 +10,7 @@ pmc::Mesh::Mesh()
 	visibility_check.resize(0);
 	face_list.resize(0);
 	getdepthImage = false;
+	FlagColor = false;
 }
 
 pmc::Mesh::Mesh(smesh::Mesh in_mesh)
@@ -34,34 +35,42 @@ pvm::Vector3D pmc::Mesh::getCenter()
 
 void pmc::Mesh::convert2pmcMesh( smesh::Mesh this_mesh)
 {
-
+	
 	vertex_list.resize(this_mesh.numOfVertex());
-	color_list.resize(this_mesh.numOfVertex());
 	visibility_check.resize(this_mesh.numOfVertex());
 	face_list.resize(this_mesh.numOfFace());
 	getdepthImage = false;
+
+	if(this_mesh.flagPointColored() == true) 
+	{
+		color_list.resize(this_mesh.numOfVertex());
+		FlagColor = true;
+	}
+	
 
 	for(int i = 0, h = this_mesh.numOfVertex(); i < h; i++) {
 		for(int j = 0; j < 3; j++) {
 			vertex_list[i].elem[j] = this_mesh.vertexCoord(i)[j];
 		}
+		
 		visibility_check[i] = false;
-	}
-
-	for(int i = 0,h = this_mesh.numOfVertex(); i < h; i++)
-	{
+		
+		if(this_mesh.flagPointColored() == false) continue;
+		
 		for(int j = 0; j < 4;j++) {
+			
 			color_list[i].rgba[j] = this_mesh.vertexColor(i)[j];
 		}
+		
 	}
-
+	
 	for(int i = 0, h = this_mesh.numOfFace(); i < h; i++) {
 		for(int j = 0; j < 3; j++) {
 			face_list[i].vertex[j] = this_mesh.vertexID(i,j);
 		}
 	}
 	getCenter();
-	getdepthImage = false;
+	
 }
 
 smesh::Mesh pmc::Mesh::convert2smesh()
@@ -73,10 +82,13 @@ smesh::Mesh pmc::Mesh::convert2smesh()
 		pvm::Vector3D temp;
 		temp = vertex_list[s];
 		r_mesh.addVertex(temp);
-
-		smesh::RGBuchar tempc;
-		tempc = color_list[s];
-		r_mesh.addColor(tempc);
+		
+		if(FlagColor == true || color_list.size() >= vertex_list.size())
+		{
+			smesh::RGBuchar tempc;
+			tempc = color_list[s];
+			r_mesh.addColor(tempc);
+		}
 	}
 
 	for(int s=0;s<face_list.size();s++)
@@ -86,6 +98,21 @@ smesh::Mesh pmc::Mesh::convert2smesh()
 	}
 
 	return r_mesh;
+}
+
+
+void pmc::Mesh::readply(std::string name)
+{
+	smesh::Mesh in;
+	in.readPLY(name.c_str());
+	this->convert2pmcMesh(in);
+}
+
+void pmc::Mesh::readobj(std::string name)
+{
+	smesh::Mesh in;
+	in.readObj(name.c_str());
+	this->convert2pmcMesh(in);
 }
 
 void pmc::Mesh::writeobj(std::string name)

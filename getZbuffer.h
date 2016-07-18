@@ -26,10 +26,15 @@ namespace pmc{
 		std::vector<Face> face_list;
 		pvm::Vector3D center;
 
+		bool FlagColor; //F
 		bool getdepthImage; // true:visible check finish
 		
 		void convert2pmcMesh(smesh::Mesh this_mesh); //smesh -> pmcmesh
 		smesh::Mesh  convert2smesh(); //pmcmesh -> smesh
+		
+		void readply(std::string name);
+		void readobj(std::string name);
+
 		void writeobj(std::string name); // obj‘‚«‚İ
 		void writeply(std::string name);// ply ‘‚«‚İ
 
