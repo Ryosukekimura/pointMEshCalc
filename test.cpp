@@ -9,46 +9,45 @@ int kWindowHeight = 424;
 pmc::pointMeshCalc *pte = 0;
 pmc::getZbuffer gz;
 
-void test()
+void test(void)
 {
-	dpp::Vector3D in_P,m0,m1,m2;
+	smesh::Mesh me;
+	for( int a=0;a<3;a++)
+	{
+		smesh::RGBuchar col;
+		col.rgba[0] = 255;
+		col.rgba[1] = 255;
+		col.rgba[2] = 255;
+		col.rgba[3] = 255;
 
-	in_P.x = 0;
-	in_P.y = 0;
-	in_P.z = 1;
-
-	m0.x = 0;
-	m0.y = 0;
-	m0.z = 0;
-
-	m1.x = 1;
-	m1.y = 0;
-	m1.z = 0;
-
-	m2.x = 0;
-	m2.y = 1;
-	m2.z = 0;
-
-	dpp::distancePointPlane dispPP(in_P,m0,m1,m2);
-
-	std::cout << dispPP.getDistance() << std::endl;
+		pvm::Vector3D ver;
+		ver.elem[0] = 0;
+		ver.elem[1] = 0;
+		ver.elem[2] = 0;
+		me.addVertex(ver);
+		me.addColor(col);
+	}
+	me.writeInPly("coltest.ply");
 }
 
-void test2()
+void test2(void)
 {
-	//smesh::Mesh tenbo;
-	//smesh::Mesh kinect;
+	smesh::Mesh tenbo, kinect;
+	
+	tenbo.readObj("0-shape.obj");
+	for(int a=0;a<tenbo.numOfVertex();a++)
+	{
+		smesh::RGBuchar col;
+		col.rgba[0] = 255;
+		col.rgba[1] = 0;
+		col.rgba[2] = 0;
+		col.rgba[3] = 255;
 
-	//tenbo.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-shape.obj");
-	//kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-vert.obj");
+		tenbo.addColor(col);
+	}
 
-	//pointMeshCalc test(tenbo,kinect);
-	////test.getDistances();
-
-	//test.test();
-
+	tenbo.writeInPly("coltest.ply");
 }
-
 static void display(void)
 {
 	//gz.Display();
@@ -79,19 +78,20 @@ static void init(void)
 int main(int argc, char *argv[])
 {
 
-	//test2();
+	test();
+	test2();
 	smesh::Mesh tenbo;
 	smesh::Mesh kinect;
 
 	tenbo.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-shape.obj");
 	kinect.readObj("C:/Users/kimura/Documents/mycode/pointMeshCalc/pointMeshCalc/0-vert.obj");
-	kinect.writeVertex("kinect_out.txt");
+	
 	pte = new pmc::pointMeshCalc(tenbo,kinect);
 	
 	//pmc::getZbuffer temp(tenbo,kinect,kWindowWidth,kWindowHeight);
-	pmc::getZbuffer temp(14,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
+	pmc::getZbuffer temp(1,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
 	gz = temp;
-
+	
 	system("PAUSE");
 
 	glutInit(&argc, argv);
@@ -106,8 +106,5 @@ int main(int argc, char *argv[])
 
 	glutMainLoop();
 	
-	
-	std::cout <<"OK!"<<std::endl;
-	system("PAUSE");
 	return 0;
 }
