@@ -48,14 +48,13 @@ smesh::RGBuchar pmc::addColorFromDistance::convertDistanceToColor(float distance
 {
 	smesh::RGBuchar col;
 
-	for(int a=0;a<3;a++)
-	{
-		col.rgba[a] = 0;
-	}
-	col.rgba[4] = 255;
+	col.rgba[0] = 127;
+	col.rgba[1] = 255;
+	col.rgba[2] = 127;
+	col.rgba[3] = 255;
 
 	float begin = 0;
-	float end = 255;
+	float end = 127;
 	float colorNorm;
 
 	//0`255‚Ì”ÍˆÍ‚Å³‹K‰»
@@ -63,16 +62,22 @@ smesh::RGBuchar pmc::addColorFromDistance::convertDistanceToColor(float distance
 	
 	if(minus)
 	{
-		col.rgba[2] = colorNorm;
+		//col.rgba[2] += colorNorm;
+		
+		col.rgba[1] -= colorNorm*2;
+		col.rgba[2] += colorNorm;
 	}else{
-		col.rgba[1] = colorNorm;
+		//col.rgba[0] += colorNorm;
+
+		col.rgba[1] -= colorNorm*2;
+		col.rgba[0] += colorNorm;
 	}
 
 	return col;
 }
 
 
-void pmc::addColorFromDistance::convertDistanceToColors()
+void pmc::addColorFromDistance::convertDistanceToColors(std::string name)
 {
 	float max = *std::max_element(distanceList.begin(),distanceList.end());
 	float zero = 0.0;
@@ -80,19 +85,40 @@ void pmc::addColorFromDistance::convertDistanceToColors()
 
 	std::cout << "max "<<max<<" min "<<min<<std::endl;
 
+	mesh.color_list.resize(mesh.vertex_list.size());
+	for(int a=0;a<mesh.vertex_list.size();a++)
+	{
+		mesh.color_list[a].rgba[0] = 127;
+		mesh.color_list[a].rgba[1] = 255;
+		mesh.color_list[a].rgba[2] = 127;
+		mesh.color_list[a].rgba[3] = 255;
+	}
+
 	for(int s=0;s<distanceList.size();s++)
 	{
+		
 		smesh::RGBuchar col;
-		if(distanceList[s] <0)
+		float ind = indexList[s];
+		/*if(mesh.visibility_check[ind] == false)
 		{
-			col = convertDistanceToColor(-distanceList[s],-min,0,true);
-		}else{
-			col = convertDistanceToColor(distanceList[s],max,0);
-		}
+			col.rgba[0] = 255;
+			col.rgba[1] = 255;
+			col.rgba[2] = 255;
+			col.rgba[3] = 255;
+			mesh.color_list[ind] = col;
 
-		mesh.color_list.push_back(col);
+			continue;
+		}*/
+		if(distanceList[ind] <0)
+		{
+			col = convertDistanceToColor(-distanceList[ind],-min,0,true);
+		}else{
+			col = convertDistanceToColor(distanceList[ind],max,0);
+		}
+		mesh.color_list[ind] = col;
+		
 	}
-	mesh.writeply("distanceColorTest.ply");
+	mesh.writeply(name);
 }
 
 

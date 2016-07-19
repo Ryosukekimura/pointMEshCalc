@@ -36,7 +36,7 @@ void test3(void)
 	acfd.getIndexList("ind.txt");
 	acfd.getDistanceList("b.txt");
 	acfd.mesh.readobj("0-vert.obj");
-	acfd.convertDistanceToColors();
+	acfd.convertDistanceToColors("distanceColorTest_.ply");
 }
 
 void test2(void)
@@ -84,14 +84,13 @@ static void init(void)
 {
 	gz.Init();
 }
-int _main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	//test();
 	//test2();
 	
 	pmc::getZbuffer temp(1,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
 	gz = temp;
-	
 	system("PAUSE");
 
 	glutInit(&argc, argv);
@@ -109,7 +108,7 @@ int _main(int argc, char *argv[])
 	return 0;
 }
 
-int main()
+int _main()
 {
 	test3();
 	

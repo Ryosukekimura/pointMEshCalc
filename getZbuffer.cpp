@@ -1,131 +1,5 @@
 #include "getZbuffer.h"
 
-///////////////////////////////////////////////
-///////////////////mesh class//////////////////
-///////////////////////////////////////////////
-
-pmc::Mesh::Mesh()
-{
-	vertex_list.resize(0);
-	visibility_check.resize(0);
-	face_list.resize(0);
-	getdepthImage = false;
-	FlagColor = false;
-}
-
-pmc::Mesh::Mesh(smesh::Mesh in_mesh)
-{
-	convert2pmcMesh(in_mesh);
-}
-
-pvm::Vector3D pmc::Mesh::getCenter()
-{
-	pvm::Vector3D c(0,0,0);
-	int size = vertex_list.size();
-	for(int s=0;s<size;s++)
-	{
-		pvm::Vector3D temp = vertex_list[s];
-		c += temp;
-	}
-
-	c = c / (float)size;
-	center = c;
-	return c;
-}
-
-void pmc::Mesh::convert2pmcMesh( smesh::Mesh this_mesh)
-{
-	
-	vertex_list.resize(this_mesh.numOfVertex());
-	visibility_check.resize(this_mesh.numOfVertex());
-	face_list.resize(this_mesh.numOfFace());
-	getdepthImage = false;
-
-	if(this_mesh.flagPointColored() == true) 
-	{
-		color_list.resize(this_mesh.numOfVertex());
-		FlagColor = true;
-	}
-	
-
-	for(int i = 0, h = this_mesh.numOfVertex(); i < h; i++) {
-		for(int j = 0; j < 3; j++) {
-			vertex_list[i].elem[j] = this_mesh.vertexCoord(i)[j];
-		}
-		
-		visibility_check[i] = false;
-		
-		if(this_mesh.flagPointColored() == false) continue;
-		
-		for(int j = 0; j < 4;j++) {
-			
-			color_list[i].rgba[j] = this_mesh.vertexColor(i)[j];
-		}
-		
-	}
-	
-	for(int i = 0, h = this_mesh.numOfFace(); i < h; i++) {
-		for(int j = 0; j < 3; j++) {
-			face_list[i].vertex[j] = this_mesh.vertexID(i,j);
-		}
-	}
-	getCenter();
-	
-}
-
-smesh::Mesh pmc::Mesh::convert2smesh()
-{
-	smesh::Mesh r_mesh;
-
-	for(int s=0;s<vertex_list.size();s++)
-	{
-		pvm::Vector3D temp;
-		temp = vertex_list[s];
-		r_mesh.addVertex(temp);
-		
-		if(FlagColor == true || color_list.size() >= vertex_list.size())
-		{
-			smesh::RGBuchar tempc;
-			tempc = color_list[s];
-			r_mesh.addColor(tempc);
-		}
-	}
-
-	for(int s=0;s<face_list.size();s++)
-	{
-		Face pmctemp = face_list[s];
-		r_mesh.addFace(pmctemp.vertex[0],pmctemp.vertex[1],pmctemp.vertex[2]);
-	}
-
-	return r_mesh;
-}
-
-
-void pmc::Mesh::readply(std::string name)
-{
-	smesh::Mesh in;
-	in.readPLY(name.c_str());
-	this->convert2pmcMesh(in);
-}
-
-void pmc::Mesh::readobj(std::string name)
-{
-	smesh::Mesh in;
-	in.readObj(name.c_str());
-	this->convert2pmcMesh(in);
-}
-
-void pmc::Mesh::writeobj(std::string name)
-{
-	smesh::Mesh out = this->convert2smesh();
-	out.writeObj(name.c_str());
-}
-
-void pmc::Mesh::writeply(std::string name)
-{
-	smesh::Mesh out = this->convert2smesh();
-	out.writeInPly(name.c_str());
-}
 
 ///////////////////////////////////////////////
 /////////////getZbuffer class//////////////////
@@ -306,6 +180,7 @@ void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 	
 	Mesh test;
 	smesh::Mesh tea;
+	tea = this_mesh.convert2smesh();
 
 	smesh::RGBuchar white,red;
 	for(int b=0;b<4;b++)
@@ -332,12 +207,11 @@ void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 			tea.addColor(white);
 		}
 
-		//tea.addColor(red);
+		tea.addColor(red);
 	}
 	
 	smesh::Mesh tt = test.convert2smesh();
 	//tt.writeVertex(name.c_str());
-	tea.flagPointColored();
 	tea.writeInPly(name.c_str());
 	
 	std::cout << "save bisible data ok" << std::endl;
@@ -441,22 +315,31 @@ void pmc::getZbuffer::getDistanceTenbo2Kinect()
 
 
 
-void pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
+int pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
 {
 	if(mesh1.getdepthImage == true)
 	{
-		return;
+		return -1;
 	}
 
 	std::vector<pvm::Vector3D> distanceListTemp;
 	char str[100];
 	saveDepthImage2(&mesh2);
-	getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
+	pmc::addColorFromDistance acfd;
+	acfd.getDistanceList("b.txt");
+	acfd.getIndexList("ind.txt");
+	moveMesh2Mesh(&mesh1,&mesh2);
+	acfd.mesh = mesh1;
+	acfd.convertDistanceToColors("colorMap.ply");
+
+	
+	/*getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
 	sprintf(str,"distance_%03d.csv",num);
 	printDistance(distanceListTemp,str);
 	sprintf(str,"visible_%03d.ply",num);
-	outputVisibilityPoint(mesh2,str);
+	outputVisibilityPoint(mesh2,str);*/
 	
+	return 0;
 }
 
 

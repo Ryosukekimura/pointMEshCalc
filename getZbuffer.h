@@ -1,46 +1,9 @@
-#include "MyLibs.h"
+#include "MyUtils.h"
+#include "addColorFromDistance.h"
 
 #pragma once;
 
 namespace pmc{
-
-	struct NearestPoint{
-		pvm::Vector3D point;
-		float norm;
-	};
-
-	struct Face{
-		unsigned short vertex[3];
-	};
-
-	class Mesh{
-	public:
-		
-		Mesh();
-		Mesh(std::string filename);
-		Mesh(smesh::Mesh in_mesh);
-
-		std::vector<pvm::Vector3D> vertex_list;
-		std::vector<bool> visibility_check; //true:visible flase:not visible
-		std::vector<smesh::RGBuchar> color_list;
-		std::vector<Face> face_list;
-		pvm::Vector3D center;
-
-		bool FlagColor; //F
-		bool getdepthImage; // true:visible check finish
-		
-		void convert2pmcMesh(smesh::Mesh this_mesh); //smesh -> pmcmesh
-		smesh::Mesh  convert2smesh(); //pmcmesh -> smesh
-		
-		void readply(std::string name);
-		void readobj(std::string name);
-
-		void writeobj(std::string name); // obj‘‚«‚İ
-		void writeply(std::string name);// ply ‘‚«‚İ
-
-	private:
-		pvm::Vector3D getCenter();
-	};
 
 	class getZbuffer{
 
@@ -95,7 +58,7 @@ namespace pmc{
 		void getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList);
 		void moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2);//dSˆÚ“®
 		void getDistanceTenbo2Kinect();//
-		void visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2);
+		int visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2);
 		void printDistance(std::vector<pvm::Vector3D> distanceList,std::string fileName = "distance.csv");
 	
 		//utility
