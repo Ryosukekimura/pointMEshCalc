@@ -8,19 +8,16 @@ namespace pmc{
 	public:
 
 		std::vector<float> distanceList;
-		std::vector<int> indexList;
 		pmc::Mesh mesh;
 
 		addColorFromDistance()
 		{
 			distanceList.resize(0);
-			indexList.resize(0);
 		}
 
 		int getDistanceList(std::string distanceListName);
-		int getIndexList(std::string indexListName);
 		void readMesh(std::string name);
-		void convertDistanceToColors(std::string name);
+		Mesh convertDistanceToColors(void);
 		smesh::RGBuchar convertDistanceToColor(float distance,float max,float min,bool minus);
 	};
 }

@@ -33,10 +33,9 @@ void test(void)
 void test3(void)
 {
 	pmc::addColorFromDistance acfd;
-	acfd.getIndexList("ind.txt");
 	acfd.getDistanceList("b.txt");
 	acfd.mesh.readobj("0-vert.obj");
-	acfd.convertDistanceToColors("distanceColorTest_.ply");
+	//acfd.convertDistanceToColors("distanceColorTest_.ply");
 }
 
 void test2(void)

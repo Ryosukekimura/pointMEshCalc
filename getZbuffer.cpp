@@ -330,11 +330,10 @@ int pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
 
 	pmc::addColorFromDistance acfd;
 	acfd.getDistanceList("b.txt");
-	acfd.getIndexList("ind.txt");
-	moveMesh2Mesh(&mesh1,&mesh2);
-	acfd.mesh = mesh1;
-	acfd.convertDistanceToColors("colorMap.ply");
-
+	//moveMesh2Mesh(&mesh1,&mesh2);
+	acfd.mesh = mesh2;
+	Mesh reMesh = acfd.convertDistanceToColors();
+	reMesh.writeply("colorMap.ply");
 	
 	/*getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
 	sprintf(str,"distance_%03d.csv",num);
