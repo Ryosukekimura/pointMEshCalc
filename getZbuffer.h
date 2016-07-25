@@ -41,13 +41,21 @@ namespace pmc{
 		void Display_all(void);
 		int meshCount;
 		void runAnimation(void);
+
+		bool AnimationFlag;
+
 		//レンダリング部分
 		void DrawScene(Mesh this_mesh);
 		
 		//gl utility
 		void Resize(int width,int height);
 		void Init(void);
+		
+		//キーボード
 		void keyboard(unsigned char key, int x, int y);
+		
+		void ControlAnimation(unsigned char key);
+		
 
 		//可視判定
 		void saveDepthImage2(Mesh *this_mesh); //メッシュの色から可視判定

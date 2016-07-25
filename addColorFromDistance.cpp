@@ -88,9 +88,9 @@ void pmc::addColorFromDistance::convertDistanceToColors(std::string name)
 	mesh.color_list.resize(mesh.vertex_list.size());
 	for(int a=0;a<mesh.vertex_list.size();a++)
 	{
-		mesh.color_list[a].rgba[0] = 127;
+		mesh.color_list[a].rgba[0] = 255;
 		mesh.color_list[a].rgba[1] = 255;
-		mesh.color_list[a].rgba[2] = 127;
+		mesh.color_list[a].rgba[2] = 0;
 		mesh.color_list[a].rgba[3] = 255;
 	}
 

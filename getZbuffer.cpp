@@ -11,7 +11,7 @@
 pmc::getZbuffer::getZbuffer(smesh::Mesh in_mesh)
 {
 	mesh.convert2pmcMesh(in_mesh);
-	
+	AnimationFlag = false;
 }
 
 
@@ -22,6 +22,7 @@ pmc::getZbuffer::getZbuffer(smesh::Mesh tenboMesh,smesh::Mesh KinectMesh,int in_
 
 	kwidth = in_width;
 	kheight = in_height;
+	AnimationFlag = false;
 }
 
 
@@ -52,11 +53,13 @@ pmc::getZbuffer::getZbuffer(int meshNum,std::string meshListName1,std::string me
 		ptemp.convert2pmcMesh(stemp);
 		meshList2.push_back(ptemp);
 	}
+	AnimationFlag = false;
 }
 
 
 void pmc::getZbuffer::Display(void)
 {
+	
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -82,13 +85,18 @@ void pmc::getZbuffer::Display_all(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	DrawScene(meshList2[meshCount]);
-	visibleCheckAndDistances(meshCount,meshList1[meshCount],meshList2[meshCount]);
-
 	glFlush();
-	runAnimation();
-	
 	//　ダブルバッファ
 	glutSwapBuffers();
+	
+	
+	if(AnimationFlag == false) return;
+	
+	visibleCheckAndDistances(meshCount,meshList1[meshCount],meshList2[meshCount]);
+
+	runAnimation();
+	
+	
 	
 }
 
@@ -157,7 +165,15 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 		saveDepthImage2(&mesh);
 		getDistanceTenbo2Kinect();
 		break;
+	case 'p':
+		ControlAnimation(key);
 	}
+}
+
+void pmc::getZbuffer::ControlAnimation(unsigned char key)
+{
+	if(AnimationFlag == false) AnimationFlag = true;
+	else AnimationFlag = false;
 }
 
 
@@ -172,20 +188,11 @@ void pmc::getZbuffer::showMatrix(double matrix[16])
 
 void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 {
-	if(this_mesh.getdepthImage == false)
-	{
-		std::cout <<"可視判定が終わっていません"<<std::endl;
-		return;
-	}
-	
-	Mesh test;
-	smesh::Mesh tea;
-	tea = this_mesh.convert2smesh();
-
 	smesh::RGBuchar white,red;
-	for(int b=0;b<4;b++)
+	Mesh outMesh;
+	for(int s=0;s<4;s++)
 	{
-		white.rgba[b] = 255;
+		white.rgba[s] = 255;
 	}
 
 	red.rgba[0] = 255;
@@ -193,27 +200,20 @@ void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 	red.rgba[2] = 0;
 	red.rgba[3] = 255;
 
-	for(int k=0;k<this_mesh.vertex_list.size();k++)
+	outMesh = this_mesh;
+	outMesh.color_list.resize(this_mesh.vertex_list.size());
+
+	for(int s=0;s<this_mesh.vertex_list.size();s++)
 	{
-		
-		
-
-		tea.addVertex(this_mesh.vertex_list[k]);
-		if(this_mesh.visibility_check[k] == true)
+		if(this_mesh.visibility_check[s] == true)
 		{
-			tea.addColor(red);
-			test.vertex_list.push_back(this_mesh.vertex_list[k]);
+			outMesh.color_list[s] = red;
 		}else{
-			tea.addColor(white);
+			outMesh.color_list[s] = white;
 		}
-
-		tea.addColor(red);
 	}
-	
-	smesh::Mesh tt = test.convert2smesh();
-	//tt.writeVertex(name.c_str());
-	tea.writeInPly(name.c_str());
-	
+
+	outMesh.writeply(name);
 	std::cout << "save bisible data ok" << std::endl;
 }
 
@@ -325,6 +325,9 @@ int pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
 	std::vector<pvm::Vector3D> distanceListTemp;
 	char str[100];
 	saveDepthImage2(&mesh2);
+	sprintf(str,"visible_%03d.ply",num);
+	outputVisibilityPoint(mesh2,str);
+
 	pmc::addColorFromDistance acfd;
 	acfd.getDistanceList("b.txt");
 	acfd.getIndexList("ind.txt");
