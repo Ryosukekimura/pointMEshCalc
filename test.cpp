@@ -10,52 +10,6 @@ int kWindowHeight = 424;
 pmc::pointMeshCalc *pte = 0;
 pmc::getZbuffer gz;
 
-void test(void)
-{
-	smesh::Mesh me;
-	for( int a=0;a<3;a++)
-	{
-		smesh::RGBuchar col;
-		col.rgba[0] = 255;
-		col.rgba[1] = 255;
-		col.rgba[2] = 255;
-		col.rgba[3] = 255;
-
-		pvm::Vector3D ver;
-		ver.elem[0] = 0;
-		ver.elem[1] = 0;
-		ver.elem[2] = 0;
-		me.addVertex(ver);
-		me.addColor(col);
-	}
-	me.writeInPly("coltest.ply");
-}
-void test3(void)
-{
-	pmc::addColorFromDistance acfd;
-	acfd.getDistanceList("b.txt");
-	acfd.mesh.readobj("0-vert.obj");
-	//acfd.convertDistanceToColors("distanceColorTest_.ply");
-}
-
-void test2(void)
-{
-	smesh::Mesh tenbo, kinect;
-	
-	tenbo.readObj("0-shape.obj");
-	for(int a=0;a<tenbo.numOfVertex();a++)
-	{
-		smesh::RGBuchar col;
-		col.rgba[0] = 255;
-		col.rgba[1] = 0;
-		col.rgba[2] = 0;
-		col.rgba[3] = 255;
-
-		tenbo.addColor(col);
-	}
-
-	tenbo.writeInPly("coltest.ply");
-}
 static void display(void)
 {
 	//gz.Display();
@@ -88,7 +42,9 @@ int main(int argc, char *argv[])
 	//test();
 	//test2();
 	
-	pmc::getZbuffer temp(1,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
+	//pmc::getZbuffer temp(14,"./data1/%d-shape.obj","./data1/%d-vert.obj",kWindowWidth,kWindowHeight);
+	pmc::getZbuffer temp(1217,"./max-c-k2-result-lr13-1/%d-shape.obj","./max-c-k2-result-lr13-1/%d-vert.obj",kWindowWidth,kWindowHeight);
+	
 	gz = temp;
 	system("PAUSE");
 
@@ -107,9 +63,20 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int _main()
+int _main(void)
 {
-	test3();
-	
+	pmc::Mesh test;
+	pmc::getZbuffer getz(1217,"./max-c-k2-result-lr13-1/%d-shape.obj","./max-c-k2-result-lr13-1/%d-vert.obj",0,0);
+	char moveName[100];
+
+	for(int a=0;a<getz.meshList1.size();a++)
+	{
+		sprintf(moveName,"./mrshape/rdmove%04d-shape.ply",a);
+		getz.moveMesh2Mesh(&getz.meshList2[a],&getz.meshList1[a]);
+		getz.meshList1[a].writeply(moveName);
+		sprintf(moveName,"./mrvert/rdmove%04d-vert.ply",a);
+		getz.meshList2[a].writeply(moveName);
+	}
+
 	return 0;
 }

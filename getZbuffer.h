@@ -19,8 +19,8 @@ namespace pmc{
 		std::vector<pvm::Vector3D> distanceL;
 
 		//calc meshes
-		std::vector<Mesh> meshList1;
-		std::vector<Mesh> meshList2;
+		std::vector<Mesh> meshList1; //pose fit tenbo list
+		std::vector<Mesh> meshList2; //vertex fit tenbo list
 		std::vector<std::vector<pvm::Vector3D>> distanceListList;
 
 		std::vector<std::vector<float>> distmap;
@@ -58,12 +58,12 @@ namespace pmc{
 		
 
 		//可視判定
-		void saveDepthImage2(Mesh *this_mesh); //メッシュの色から可視判定
+		void saveDepthImage2(Mesh *this_mesh, std::vector<int> *frontFace); //メッシュの色から可視判定
 		void outputVisibilityPoint(Mesh this_mesh,std::string name ="result.txt"); //meshの見えてる部分を出力
 
 		
 		//calc distance
-		void getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList);
+		void getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2 ,std::vector<pvm::Vector3D> *distanceList, bool saveall);
 		void moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2);//重心移動
 		void getDistanceTenbo2Kinect();//
 		int visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2);

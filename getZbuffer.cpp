@@ -81,7 +81,7 @@ void pmc::getZbuffer::Display_all(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	gluLookAt(0.0,0.0,0.0,  meshList2[0].center.elem[0],meshList2[0].center.elem[1],meshList2[0].center.elem[2]  ,0.0,1.0,0.0);
+	gluLookAt(0.0,0.0,2.0,  meshList2[0].center.elem[0],meshList2[0].center.elem[1],meshList2[0].center.elem[2]  ,0.0,1.0,0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	DrawScene(meshList2[meshCount]);
@@ -89,7 +89,8 @@ void pmc::getZbuffer::Display_all(void)
 	//　ダブルバッファ
 	glutSwapBuffers();
 	
-	
+	std::cout << meshCount << std::endl;
+
 	if(AnimationFlag == false) return;
 	
 	visibleCheckAndDistances(meshCount,meshList1[meshCount],meshList2[meshCount]);
@@ -162,7 +163,7 @@ void pmc::getZbuffer::keyboard(unsigned char key, int x, int y)
 {
 	switch(key) {
 	case 'd':
-		saveDepthImage2(&mesh);
+		//saveDepthImage2(&mesh);
 		getDistanceTenbo2Kinect();
 		break;
 	case 'p':
@@ -218,7 +219,7 @@ void pmc::getZbuffer::outputVisibilityPoint(Mesh this_mesh,std::string name)
 }
 
 
-void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)の可視判定
+void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh, std::vector<int> *frontFace)//mesh2(kienctfitting)の可視判定
 {
 	//from NAIST 
 	std::cout << "show depth image" << std::endl;
@@ -230,7 +231,7 @@ void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)の可
 
 	std::vector<int> frontVertices(this_mesh->vertex_list.size(), 0);
 	std::vector<int> frontFaces(this_mesh->face_list.size(), 0);
-
+	frontFace->resize(this_mesh->face_list.size(),0);
 
 	for(int i=0; i<idxImg.rows; i++){
 		for(int j=0; j<idxImg.cols; j++){
@@ -240,6 +241,7 @@ void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)の可
 				continue;
 			if(frontFaces[sufIdx] == 0){
 				frontFaces[sufIdx] = 1;
+
 				Face f = this_mesh->face_list[sufIdx];
 				
 				for(int a=0;a<3;a++)
@@ -251,7 +253,10 @@ void pmc::getZbuffer::saveDepthImage2(Mesh *this_mesh)//mesh2(kienctfitting)の可
 	}
 	this_mesh->getdepthImage = true;
 	//outputVisibilityPoint(*this_mesh); //dubeg 
+	
 	std::cout << "get depth buffer ok" << std::endl;
+	frontFace->assign(frontFaces.begin(),frontFaces.end());
+	//return frontFaces;
 }
 
 
@@ -279,7 +284,7 @@ void pmc::getZbuffer::moveMesh2Mesh(Mesh *mesh1,Mesh *mesh2)//move mesh1(tenbo) 
 }
 
 
-void pmc::getZbuffer::getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList)//mesh2(visible) - mesh1 mesh2:kinectFitting mesh1:tenboOutput
+void pmc::getZbuffer::getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pvm::Vector3D> *distanceList,bool saveall = false)//mesh2(visible) - mesh1 mesh2:kinectFitting mesh1:tenboOutput
 {
 	std::cout <<"calc distance ";
 	if(mesh2.getdepthImage == false)
@@ -294,11 +299,11 @@ void pmc::getZbuffer::getDistanceMesh2Mesh(Mesh mesh1,Mesh mesh2, std::vector<pv
 	{
 		
 		pvm::Vector3D temp;
-		if(mesh2.visibility_check[a] == true)
+		if(mesh2.visibility_check[a] == false && saveall == true)
 		{
-			temp = mesh2.vertex_list[a] - mesh1.vertex_list[a];
-		}else{
 			temp.setElement(-1000,-1000,-1000);
+		}else{
+			temp = mesh2.vertex_list[a] - mesh1.vertex_list[a];
 		}
 
 		distanceList->push_back(temp);
@@ -317,30 +322,53 @@ void pmc::getZbuffer::getDistanceTenbo2Kinect()
 
 int pmc::getZbuffer::visibleCheckAndDistances(int num, Mesh mesh1, Mesh mesh2)
 {
+	/*
 	if(mesh1.getdepthImage == true)
 	{
 		return -1;
 	}
-
+	*/
 	std::vector<pvm::Vector3D> distanceListTemp;
+	pmc::addColorFromDistance acfd;
+	std::vector<int>frontFace;
+
 	char str[100];
-	saveDepthImage2(&mesh2);
+	saveDepthImage2(&mesh2,&frontFace);
+	sprintf(str,"visibleFace%04d.txt",num);
+
+	std::ofstream ofs(str);
+	for (int a=0;a<frontFace.size();a++)
+	{
+		//std::cout <<"frontface:"<<frontFace[a] << std::endl;
+		ofs << frontFace[a] << std::endl;
+	}
+	ofs.close();
+
+
+	/*
 	sprintf(str,"visible_%03d.ply",num);
 	outputVisibilityPoint(mesh2,str);
 
-	pmc::addColorFromDistance acfd;
-	acfd.getDistanceList("b.txt");
-	//moveMesh2Mesh(&mesh1,&mesh2);
-	acfd.mesh = mesh2;
-	Mesh reMesh = acfd.convertDistanceToColors();
-	reMesh.writeply("colorMap.ply");
+	sprintf(str,"./distancelist_new/distance-%03d.txt",num);
+	//sprintf(str,"./compornent001_one/invtrans_one_frame%03d.txt",num);
+	acfd.getDistanceList(str);
+	moveMesh2Mesh(&mesh1,&mesh2);
 	
-	/*getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
+	for(int a=0;a<mesh1.vertex_list.size();a++) mesh1.visibility_check[a] = true;
+	
+	acfd.mesh = mesh1;
+	Mesh reMesh = acfd.convertDistanceToColors();
+	
+	sprintf(str,"./colorMap_gt/colorMap_gt_%03d.ply",num);
+	reMesh.writeply(str);
+	
+	
+	getDistanceMesh2Mesh(mesh1,mesh2,&distanceListTemp);
 	sprintf(str,"distance_%03d.csv",num);
 	printDistance(distanceListTemp,str);
 	sprintf(str,"visible_%03d.ply",num);
-	outputVisibilityPoint(mesh2,str);*/
-	
+	outputVisibilityPoint(mesh2,str);
+	*/
 	return 0;
 }
 
@@ -351,8 +379,6 @@ void pmc::getZbuffer::printDistance(std::vector<pvm::Vector3D> distanceList,std:
 	std::cout <<"distance list "<< fileName << " out put" << std::endl;
 	for(int a=0;a<distanceList.size();a++)
 	{
-		for(int b=0;b<3;b++)
-			ofs << distanceList[a].elem[b]<<",";
-		ofs<<std::endl;
+			ofs << distanceList[a].elem[0]<<","<<distanceList[a].elem[1]<<","<<distanceList[a].elem[2]<<std::endl;
 	}
 }
